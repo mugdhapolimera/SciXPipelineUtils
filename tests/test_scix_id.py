@@ -81,7 +81,7 @@ class TestSciXIDImplementation(TestCase):
         user_fields = ["id"]
         scix_id = scixid.generate_scix_id(test_bib_data, user_fields=user_fields)
         scix_id_2 = scixid.generate_scix_id(test_bib_data)
-        self.assertEqual(scix_id, "3YG1-418S-68AF")
+        self.assertEqual(scix_id, "44GP-FCA0-SEWD")
         self.assertNotEqual(scix_id, scix_id_2)
 
     def test_generate_scix_id_special_characters_true(self):

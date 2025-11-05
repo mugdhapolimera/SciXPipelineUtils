@@ -209,14 +209,21 @@ def generate_bib_data_hash(hash_data, strip_characters=True, user_fields=None):
         "copyright",
     ]
 
-    if user_fields:
-        unique_fields = user_fields
+    hash_data_fields = list(hash_data.keys())
 
-    for field in unique_fields:
-        try:
-            hash_data.pop(field)
-        except Exception:
-            continue
+    if user_fields:
+        for field in hash_data_fields:
+            if field not in user_fields:
+                try:
+                    hash_data.pop(field)
+                except Exception:
+                    continue
+    else:
+        for field in unique_fields:
+            try:
+                hash_data.pop(field)
+            except Exception:
+                continue
 
     if strip_characters and hash_data.get("abs"):
         hash_data["abs"][0] = re.sub("<[^<]+?>", "", hash_data.get("abs")[0])
