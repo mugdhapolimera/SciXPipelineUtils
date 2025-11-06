@@ -212,6 +212,11 @@ def generate_bib_data_hash(hash_data, strip_characters=True, user_fields=None):
     hash_data_fields = list(hash_data.keys())
 
     if user_fields:
+        # If no intersection, treat as if user_fields was None
+        if (set(user_fields) & set(hash_data_fields)) == set():
+            user_fields = None
+    
+    if user_fields:
         for field in hash_data_fields:
             if field not in user_fields:
                 try:
