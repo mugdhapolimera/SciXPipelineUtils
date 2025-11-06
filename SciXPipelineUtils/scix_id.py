@@ -179,6 +179,28 @@ def scix_id_from_hash(hash, checksum=True, split=4, string_length=12):
     return encode(rand_int)
 
 
+def _remove_fields_from_hash_data(hash_data, fields_to_remove):
+    """Remove specified fields from hash_data dictionary."""
+    for field in fields_to_remove:
+        try:
+            hash_data.pop(field)
+        except Exception:
+            continue
+
+
+def _strip_abs_characters(hash_data):
+    """Strip HTML and special characters from abstract field."""
+    if not hash_data.get("abs"):
+        return
+
+    abs_text = hash_data["abs"][0]
+    abs_text = re.sub("<[^<]+?>", "", abs_text)
+    abs_text = re.sub(r"\W+", "", abs_text)
+    abs_text = re.sub(r"&[a-zA-Z]+;", "", abs_text)  # Remove HTML entities
+    abs_text = re.sub(r"[^\x00-\x7F]", "", abs_text)  # Remove special Unicode characters
+    hash_data["abs"][0] = abs_text
+
+
 def generate_bib_data_hash(hash_data, strip_characters=True, user_fields=None):
     unique_fields = [
         "id",
@@ -215,30 +237,16 @@ def generate_bib_data_hash(hash_data, strip_characters=True, user_fields=None):
         # If no intersection, treat as if user_fields was None
         if (set(user_fields) & set(hash_data_fields)) == set():
             user_fields = None
-    
-    if user_fields:
-        for field in hash_data_fields:
-            if field not in user_fields:
-                try:
-                    hash_data.pop(field)
-                except Exception:
-                    continue
-    else:
-        for field in unique_fields:
-            try:
-                hash_data.pop(field)
-            except Exception:
-                continue
 
-    if strip_characters and hash_data.get("abs"):
-        hash_data["abs"][0] = re.sub("<[^<]+?>", "", hash_data.get("abs")[0])
-        hash_data["abs"][0] = re.sub(r"\W+", "", hash_data.get("abs")[0])
-        hash_data["abs"][0] = re.sub(
-            r"&[a-zA-Z]+;", "", hash_data.get("abs")[0]
-        )  # Remove HTML entities
-        hash_data["abs"][0] = re.sub(
-            r"[^\x00-\x7F]", "", hash_data.get("abs")[0]
-        )  # Remove special Unicode characters like Greek and math
+    if user_fields:
+        fields_to_remove = [f for f in hash_data_fields if f not in user_fields]
+        _remove_fields_from_hash_data(hash_data, fields_to_remove)
+    else:
+        _remove_fields_from_hash_data(hash_data, unique_fields)
+
+    if strip_characters:
+        _strip_abs_characters(hash_data)
+
     encoded_hash_data = json.dumps(hash_data).encode("utf-8")
     return hashlib.md5(encoded_hash_data).hexdigest()
 
